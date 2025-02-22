@@ -1,0 +1,53 @@
+[
+  {
+    "model": "products.category",
+    "pk": 1,
+    "fields": {
+      "name": "Cakes"
+    }
+  },
+  {
+    "model": "products.category",
+    "pk": 2,
+    "fields": {
+      "name": "Pastries"
+    }
+  },
+  {
+    "model": "products.category",
+    "pk": 3,
+    "fields": {
+      "name": "Macarons"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 1,
+    "fields": {
+      "name": "Chocolate Cake",
+      "description": "A delicious chocolate cake",
+      "price": 20.00,
+      "category": 1
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 2,
+    "fields": {
+      "name": "Strawberry Pastry",
+      "description": "A flaky pastry filled with strawberry jam",
+      "price": 5.00,
+      "category": 2
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 3,
+    "fields": {
+      "name": "Vanilla Macaron",
+      "description": "A sweet vanilla macaron",
+      "price": 2.50,
+      "category": 3
+    }
+  }
+]
