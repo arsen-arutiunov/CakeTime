@@ -26,45 +26,53 @@ class RegisterAPIView(APIView):
 
 
 class LoginAPIView(APIView):
-    """User authorisation and receipt of JWT tokens"""
+    """User authorization and receipt of JWT tokens"""
 
     @swagger_auto_schema(
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
-            required=['email', 'password'],
+            required=["email", "password"],
             properties={
-                'email': openapi.Schema(type=openapi.TYPE_STRING,
+                "email": openapi.Schema(type=openapi.TYPE_STRING,
                                         format=openapi.FORMAT_EMAIL),
-                'password': openapi.Schema(type=openapi.TYPE_STRING,
-                                           format=openapi.FORMAT_PASSWORD)
-            }
+                "password": openapi.Schema(type=openapi.TYPE_STRING,
+                                           format=openapi.FORMAT_PASSWORD),
+            },
         ),
         responses={
             200: TokenSerializer,
             400: openapi.Response(description="Missing email or password"),
-            401: openapi.Response(description="Incorrect credentials")
-        }
+            403: openapi.Response(description="User account is disabled"),
+            401: openapi.Response(description="Incorrect credentials"),
+        },
     )
     def post(self, request, *args, **kwargs):
-        email = request.data.get('email')
-        password = request.data.get('password')
+        email = request.data.get("email")
+        password = request.data.get("password")
 
         if not email or not password:
-            return Response({'detail': 'Email and password must be specified'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Email and password must be specified"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         user = authenticate(email=email, password=password)
 
         if not user:
-            return Response({'detail': 'Incorrect credentials'},
+            return Response({"detail": "Incorrect credentials"},
                             status=status.HTTP_401_UNAUTHORIZED)
+
+        if not user.is_active:
+            return Response({"detail": "User account is disabled"},
+                            status=status.HTTP_403_FORBIDDEN)
 
         refresh = RefreshToken.for_user(user)
 
-        return Response({
-            'access': str(refresh.access_token),
-            'refresh': str(refresh)
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {"access": str(refresh.access_token),
+             "refresh": str(refresh)},
+            status=status.HTTP_200_OK
+        )
 
 
 class UserProfileAPIView(APIView):
@@ -72,10 +80,7 @@ class UserProfileAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     @swagger_auto_schema(
-        responses={
-            200: UserSerializer,
-            401: "Unauthorized"
-        }
+        responses={200: UserSerializer, 401: "Unauthorized"}
     )
     def get(self, request, *args, **kwargs):
         serializer = UserSerializer(request.user)
@@ -83,17 +88,20 @@ class UserProfileAPIView(APIView):
 
     @swagger_auto_schema(
         request_body=UserSerializer,
-        responses={
-            200: UserSerializer,
-            400: "Validation Error",
-            401: "Unauthorized"
-        }
+        responses={200: UserSerializer,
+                   400: "Validation Error",
+                   401: "Unauthorized"}
     )
-    def put(self, request, *args, **kwargs):
+    def patch(self, request, *args, **kwargs):  # PATCH вместо PUT
+        if "email" in request.data:  # Блокируем изменение email
+            return Response({"error": "Email change is not allowed"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         serializer = UserSerializer(request.user,
                                     data=request.data,
-                                    partial=True)  # Разрешает обновлять только переданные поля
+                                    partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors,
+                        status=status.HTTP_400_BAD_REQUEST)
