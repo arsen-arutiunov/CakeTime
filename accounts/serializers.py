@@ -1,5 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -37,9 +41,11 @@ class RegisterSerializer(serializers.ModelSerializer):
             email=validated_data["email"],
             username=validated_data["username"]
         )
+
         # Безопасное хеширование пароля
         user.set_password(validated_data["password"])
         user.save()
+
         return user
 
 class TokenSerializer(serializers.Serializer):
