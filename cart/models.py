@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Sum
+
 from products.models import Product
 
 class Cart(models.Model):
@@ -16,9 +17,10 @@ class Cart(models.Model):
 
     def update_total_price(self):
         """Update shopping basket total price"""
-        self.total_price = sum(
-            F('quantity') * F('product__price') for item in self.items.all()
-        )
+        total = self.items.aggregate(
+            total_price=Sum(F('quantity') * F('product__price')))[
+                    'total_price'] or 0.00
+        self.total_price = total
         self.save()
 
 class CartItem(models.Model):

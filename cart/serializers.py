@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import Cart, CartItem
-from products.models import Product
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -16,6 +15,14 @@ class CartItemSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'product', 'quantity', 'product_name', 'product_price'
         ]
+
+    def validate_quantity(self, value):
+        """Проверка, что количество товара больше нуля"""
+        if value <= 0:
+            raise serializers.ValidationError(
+                "Quantity must be greater than zero."
+            )
+        return value
 
 
 class CartSerializer(serializers.ModelSerializer):

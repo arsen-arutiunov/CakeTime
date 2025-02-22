@@ -4,10 +4,13 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-
 from products.models import Product
 from .models import Cart, CartItem
 from .serializers import CartSerializer, CartItemSerializer
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class CartAPIView(APIView):
@@ -21,12 +24,17 @@ class CartAPIView(APIView):
         }
     )
     def get(self, request):
-        cart, created = Cart.objects.get_or_create(user=request.user)
-        if not cart.items.exists():  # Если корзина пуста
-            return Response({'detail': 'Your cart is empty'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        serializer = CartSerializer(cart)
-        return Response(serializer.data)
+        try:
+            cart = Cart.objects.get(user=request.user)
+            if not cart.items.exists():  # Проверка на пустую корзину
+                return Response({'detail': 'Your cart is empty'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            serializer = CartSerializer(cart)
+            return Response(serializer.data)
+        except Cart.DoesNotExist:
+            logger.error(f"Cart for user {request.user.username} not found")
+            return Response({'detail': 'Cart not found'},
+                            status=status.HTTP_404_NOT_FOUND)
 
     @swagger_auto_schema(
         operation_description="Create a shopping basket "
@@ -74,12 +82,9 @@ class CartItemAPIView(APIView):
         cart_item, created = CartItem.objects.get_or_create(cart=cart,
                                                             product=product)
 
-        # Обновляем количество товара
-        cart_item.quantity += quantity
+        cart_item.quantity += quantity  # Увеличиваем количество товара
         cart_item.save()
-
-        # Обновляем общую цену корзины
-        cart.update_total_price()
+        cart.update_total_price()  # Обновляем общую цену корзины
 
         serializer = CartItemSerializer(cart_item)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -104,10 +109,9 @@ class CartItemAPIView(APIView):
             return Response({'detail': 'Cart item not found'},
                             status=status.HTTP_404_NOT_FOUND)
 
-        cart_item.delete()
-
+        cart_item.delete()  # Удаляем товар из корзины
         cart = Cart.objects.get(user=request.user)
-        cart.update_total_price()
+        cart.update_total_price()  # Обновляем общую цену корзины
 
         return Response({'detail': 'Item removed from cart'},
                         status=status.HTTP_204_NO_CONTENT)
