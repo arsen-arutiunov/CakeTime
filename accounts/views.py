@@ -13,6 +13,8 @@ class RegisterAPIView(APIView):
     """New user registration"""
 
     @swagger_auto_schema(
+        operation_summary="New user registration",
+        operation_description="New user registration",
         request_body=RegisterSerializer,
         responses={201: UserSerializer, 400: "Validation Error"}
     )
@@ -29,6 +31,8 @@ class LoginAPIView(APIView):
     """User authorization and receipt of JWT tokens"""
 
     @swagger_auto_schema(
+        operation_summary="User authorization and receipt of JWT tokens",
+        operation_description="User authorization and receipt of JWT tokens",
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             required=["email", "password"],
@@ -80,6 +84,8 @@ class UserProfileAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     @swagger_auto_schema(
+        operation_summary="Get user profile",
+        operation_description="Get user profile",
         responses={200: UserSerializer, 401: "Unauthorized"}
     )
     def get(self, request, *args, **kwargs):
@@ -87,6 +93,8 @@ class UserProfileAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
+        operation_summary="Update user profile",
+        operation_description="Update user profile",
         request_body=UserSerializer,
         responses={200: UserSerializer,
                    400: "Validation Error",

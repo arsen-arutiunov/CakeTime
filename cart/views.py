@@ -17,6 +17,7 @@ class CartAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
+        operation_summary="Get the current user's basket",
         operation_description="Get the current user's basket",
         responses={
             200: CartSerializer(),
@@ -37,6 +38,8 @@ class CartAPIView(APIView):
                             status=status.HTTP_404_NOT_FOUND)
 
     @swagger_auto_schema(
+        operation_summary="Create a shopping basket for the user "
+                          "(if it does not exist)",
         operation_description="Create a shopping basket "
                               "for the user (if it does not exist)",
         responses={201: CartSerializer()}
@@ -51,6 +54,7 @@ class CartItemAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
+        operation_summary="Add item to basket",
         operation_description="Add item to basket",
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
@@ -90,6 +94,7 @@ class CartItemAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(
+        operation_summary="Remove item from basket",
         operation_description="Remove an item from the basket",
         manual_parameters=[
             openapi.Parameter('cart_item_id', openapi.IN_PATH,
