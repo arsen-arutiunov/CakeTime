@@ -1,23 +1,75 @@
-# 📌 Cake Time API Documentation
+# Cake Time API
 
+API для интернет-магазина пирожных.
 
-## 🏷️ Authentication & User Management
+## Содержание
 
-### **1. Register a New User**  
-**Endpoint:** `POST /api/register/`
+1.  [Введение](#1-введение)
+2.  [Установка и запуск](#2-установка-и-запуск)
+3.  [Аутентификация](#3-аутентификация)
+4.  [Документация API](#4-документация-api)
+    * [4.1. Аутентификация и управление пользователями](#41-аутентификация-и-управление-пользователями)
+    * [4.2. Управление продуктами](#42-управление-продуктами)
+    * [4.3. Управление корзиной](#43-управление-корзиной)
+    * [4.4. Управление заказами](#44-управление-заказами)
+5.  [Обработка ошибок](#5-обработка-ошибок)
+6.  [Валидация данных](#6-валидация-данных)
+7.  [Пагинация и фильтрация](#7-пагинация-и-фильтрация)
+8.  [Swagger/ReDoc](#8-swaggerredoc)
+9.  [Тестирование](#9-тестирование)
+10. [Развертывание](#10-развертывание)
+11. [Вклад в проект](#11-вклад-в-проект)
+12. [Лицензия](#12-лицензия)
 
-**Description:** Creates a new user account.
+## 1. Введение
 
-📥 **Request Body**
+Этот API предназначен для управления интернет-магазином пирожных. Он позволяет пользователям регистрироваться, просматривать и заказывать продукты, а также управлять своей корзиной и заказами. API разработан с использованием Django REST Framework и использует JWT аутентификацию.
+
+## 2. Установка и запуск
+
+1.  Клонируйте репозиторий: `git clone <repository_url>`
+2.  Создайте виртуальное окружение: `python -m venv venv`
+3.  Активируйте виртуальное окружение:
+    * Windows: `venv\Scripts\activate`
+    * macOS/Linux: `source venv/bin/activate`
+4.  Установите зависимости: `pip install -r requirements.txt`
+5.  Создайте файл `.env` на основе `sample.env` и заполните необходимые переменные окружения.
+6.  Выполните миграции: `python manage.py migrate`
+7.  Запустите сервер: `python manage.py runserver`
+
+Для запуска в Docker:
+
+1.  Установите Docker и Docker Compose.
+2.  Выполните `docker-compose up --build`.
+
+## 3. Аутентификация
+
+API использует JWT аутентификацию. Для получения JWT токенов необходимо выполнить запрос `POST /api/login/` с учетными данными пользователя. Полученные токены необходимо передавать в заголовке `Authorization: Bearer <token>` при выполнении запросов к защищенным эндпоинтам.
+
+## 4. Документация API
+
+### 4.1. Аутентификация и управление пользователями
+
+#### 4.1.1. Регистрация нового пользователя
+
+* **Метод:** `POST`
+* **Эндпоинт:** `/api/register/`
+* **Описание:** Регистрация нового пользователя.
+* **Запрос:**
+
 ```json
 {
     "email": "user@example.com",
     "username": "newuser",
-    "password": "securepassword"
+    "password": "securepassword",
+    "first_name": "John",
+    "last_name": "Doe",
+    "phone": "+38 000 000 00 00"
 }
 ```
 
-✅ **Response (201 Created)**
+* **Ответ (201 Created):**
+
 ```json
 {
     "id": 1,
@@ -26,14 +78,13 @@
 }
 ```
 
----
+#### 4.1.2. Аутентификация пользователя
 
-### **2. User Login**  
-**Endpoint:** `POST /api/login/`
+* **Метод:** `POST`
+* **Эндпоинт:** `/api/login/`
+* **Описание:** Аутентификация пользователя и получение JWT токенов.
+* **Запрос:**
 
-**Description:** Authenticates a user and returns JWT tokens.
-
-📥 **Request Body**
 ```json
 {
     "email": "user@example.com",
@@ -41,7 +92,8 @@
 }
 ```
 
-✅ **Response (200 OK)**
+* **Ответ (200 OK):**
+
 ```json
 {
     "access": "jwt_access_token",
@@ -49,132 +101,59 @@
 }
 ```
 
----
+#### 4.1.3. Получение профиля пользователя
 
-### **3. Get User Profile**  
-**Endpoint:** `GET /api/profile/`  
-**Description:** Returns the authenticated user's profile information.
+* **Метод:** `GET`
+* **Эндпоинт:** `/api/profile/`
+* **Описание:** Получение профиля аутентифицированного пользователя.
+* **Ответ (200 OK):**
 
-✅ **Response (200 OK)**
 ```json
 {
     "id": 1,
     "username": "newuser",
-    "email": "user@example.com"
+    "email": "user@example.com",
+    "first_name": "John",
+    "last_name": "Doe",
+    "phone": "+38 000 000 00 00"
 }
 ```
 
----
+#### 4.1.4. Обновление профиля пользователя
 
-### **4. Update User Profile**  
-**Endpoint:** `PUT /api/profile/`  
-**Description:** Updates the authenticated user's profile.
+* **Метод:** `PATCH`
+* **Эндпоинт:** `/api/profile/`
+* **Описание:** Обновление профиля аутентифицированного пользователя.
+* **Запрос:**
 
-📥 **Request Body**
 ```json
 {
     "username": "updateduser"
 }
 ```
 
-✅ **Response (200 OK)**
+* **Ответ (200 OK):**
+
 ```json
 {
     "id": 1,
     "username": "updateduser",
-    "email": "user@example.com"
+    "email": "user@example.com",
+    "first_name": "John",
+    "last_name": "Doe",
+    "phone": "+38 000 000 00 00"
 }
 ```
 
----
+### 4.2. Управление продуктами
 
-# 📦 Products API Documentation  
+#### 4.2.1. Получение списка продуктов
 
-## 🏷️ Categories
+* **Метод:** `GET`
+* **Эндпоинт:** `/api/products/`
+* **Описание:** Получение списка всех продуктов.
+* **Ответ (200 OK):**
 
-### **1. Get All Categories**  
-**Endpoint:** `GET /api/categories/`  
-**Description:** Returns a list of all available categories.
-
-✅ **Response (200 OK)**
-```json
-[
-    {
-        "id": 1,
-        "name": "Cakes"
-    },
-    {
-        "id": 2,
-        "name": "Macarons"
-    }
-]
-```
-
-### **2. Get Category by ID**  
-**Endpoint:** `GET /api/categories/{id}/`  
-**Description:** Returns details of a specific category by ID.
-
-✅ **Response (200 OK)**
-```json
-{
-    "id": 1,
-    "name": "Cakes"
-}
-```
-
-### **3. Create a New Category**  
-**Endpoint:** `POST /api/categories/`  
-**Description:** Creates a new category.
-
-📥 **Request Body**
-```json
-{
-    "name": "Pies"
-}
-```
-
-✅ **Response (201 Created)**
-```json
-{
-    "id": 3,
-    "name": "Pies"
-}
-```
-
-### **4. Update a Category**  
-**Endpoint:** `PUT /api/categories/{id}/`  
-**Description:** Updates an existing category.
-
-📥 **Request Body**
-```json
-{
-    "name": "Updated Cakes"
-}
-```
-
-✅ **Response (200 OK)**
-```json
-{
-    "id": 1,
-    "name": "Updated Cakes"
-}
-```
-
-### **5. Delete a Category**  
-**Endpoint:** `DELETE /api/categories/{id}/`  
-**Description:** Deletes a category.
-
-✅ **Response (204 No Content)**
-
----
-
-## 🏷️ Products
-
-### **1. Get All Products**  
-**Endpoint:** `GET /api/products/`  
-**Description:** Returns a list of all available products.
-
-✅ **Response (200 OK)**
 ```json
 [
     {
@@ -191,98 +170,15 @@
 ]
 ```
 
-### **2. Get Product by ID**  
-**Endpoint:** `GET /api/products/{id}/`  
-**Description:** Returns details of a specific product by ID.
+### 4.3. Управление корзиной
 
-✅ **Response (200 OK)**
-```json
-{
-    "id": 1,
-    "name": "Chocolate Cake",
-    "description": "Delicious chocolate cake",
-    "price": "25.99",
-    "image": "/media/products/chocolate_cake.jpg",
-    "category": {
-        "id": 1,
-        "name": "Cakes"
-    }
-}
-```
+#### 4.3.1. Получение корзины
 
-### **3. Create a New Product**  
-**Endpoint:** `POST /api/products/`  
-**Description:** Creates a new product.
+* **Метод:** `GET`
+* **Эндпоинт:** `/api/cart/`
+* **Описание:** Получение корзины аутентифицированного пользователя.
+* **Ответ (200 OK):**
 
-📥 **Request Body**
-```json
-{
-    "name": "Vanilla Cake",
-    "description": "Soft and creamy vanilla cake",
-    "price": "20.50",
-    "image": "/media/products/vanilla_cake.jpg",
-    "category": 1
-}
-```
-
-✅ **Response (201 Created)**
-```json
-{
-    "id": 2,
-    "name": "Vanilla Cake",
-    "description": "Soft and creamy vanilla cake",
-    "price": "20.50",
-    "image": "/media/products/vanilla_cake.jpg",
-    "category": {
-        "id": 1,
-        "name": "Cakes"
-    }
-}
-```
-
-### **4. Update a Product**  
-**Endpoint:** `PUT /api/products/{id}/`  
-**Description:** Updates an existing product.
-
-📥 **Request Body**
-```json
-{
-    "name": "Updated Vanilla Cake",
-    "description": "New and improved recipe",
-    "price": "22.00",
-    "category": 1
-}
-```
-
-✅ **Response (200 OK)**
-```json
-{
-    "id": 2,
-    "name": "Updated Vanilla Cake",
-    "description": "New and improved recipe",
-    "price": "22.00",
-    "category": {
-        "id": 1,
-        "name": "Cakes"
-    }
-}
-```
-
-### **5. Delete a Product**  
-**Endpoint:** `DELETE /api/products/{id}/`  
-**Description:** Deletes a product.
-
-✅ **Response (204 No Content)**
-
----
-
-## 🏷️ Cart Management
-
-### **1. View Cart**  
-**Endpoint:** `GET /api/cart/`  
-**Description:** Returns the current user's cart with items and total price.
-
-✅ **Response (200 OK)**
 ```json
 {
     "id": 1,
@@ -293,137 +189,26 @@
                 "name": "Chocolate Cake",
                 "price": "25.99"
             },
-            "quantity": 2,
-            "total_price": "51.98"
+            "quantity": 2
         }
     ],
-    "total": "51.98"
+    "total_price": "51.98"
 }
 ```
 
----
+### 4.4. Управление заказами
 
-### **2. Add Item to Cart**  
-**Endpoint:** `POST /api/cart/add/`  
-**Description:** Adds a product to the user's cart or updates the quantity if the product already exists.
+#### 4.4.1. Получение списка заказов
 
-📥 **Request Body**
-```json
-{
-    "product_id": 1,
-    "quantity": 2
-}
-```
+* **Метод:** `GET`
+* **Эндпоинт:** `/api/orders/`
+* **Описание:** Получение списка заказов аутентифицированного пользователя.
+* **Ответ (200 OK):**
 
-✅ **Response (200 OK)**
-```json
-{
-    "message": "Product added to cart",
-    "cart": {
-        "id": 1,
-        "items": [
-            {
-                "product": {
-                    "id": 1,
-                    "name": "Chocolate Cake",
-                    "price": "25.99"
-                },
-                "quantity": 2,
-                "total_price": "51.98"
-            }
-        ],
-        "total": "51.98"
-    }
-}
-```
-
----
-
-### **3. Update Cart Item**  
-**Endpoint:** `PUT /api/cart/update/{id}/`  
-**Description:** Updates the quantity of a specific cart item.
-
-📥 **Request Body**
-```json
-{
-    "quantity": 3
-}
-```
-
-✅ **Response (200 OK)**
-```json
-{
-    "message": "Cart updated successfully",
-    "cart": {
-        "id": 1,
-        "items": [
-            {
-                "product": {
-                    "id": 1,
-                    "name": "Chocolate Cake",
-                    "price": "25.99"
-                },
-                "quantity": 3,
-                "total_price": "77.97"
-            }
-        ],
-        "total": "77.97"
-    }
-}
-```
-
----
-
-### **4. Remove Item from Cart**  
-**Endpoint:** `DELETE /api/cart/remove/{id}/`  
-**Description:** Removes a product from the user's cart.
-
-✅ **Response (200 OK)**
-```json
-{
-    "message": "Product removed from cart",
-    "cart": {
-        "id": 1,
-        "items": [],
-        "total": "0.00"
-    }
-}
-```
-
----
-
-### **5. Clear Cart**  
-**Endpoint:** `DELETE /api/cart/clear/`  
-**Description:** Removes all items from the user's cart.
-
-✅ **Response (200 OK)**
-```json
-{
-    "message": "Cart cleared successfully",
-    "cart": {
-        "id": 1,
-        "items": [],
-        "total": "0.00"
-    }
-}
-```
----
-
-## 🏷️ Orders Management
-
-### **1. Get All Orders**  
-**Endpoint:** `GET /api/orders/`  
-**Description:** Returns a list of all orders for the authenticated user.
-
-✅ **Response (200 OK)**
 ```json
 [
     {
         "id": 1,
-        "user": {
-            "id": 2,
-            "username": "johndoe"
-        },
         "items": [
             {
                 "product": {
@@ -431,119 +216,24 @@
                     "name": "Chocolate Cake",
                     "price": "25.99"
                 },
-                "quantity": 2,
-                "total_price": "51.98"
+                "quantity": 2
             }
         ],
-        "total": "51.98",
-        "status": "Pending"
+        "total_price": "51.98",
+        "status": "pending"
     }
 ]
 ```
 
----
+## 5. Обработка ошибок
 
-### **2. Get Order by ID**  
-**Endpoint:** `GET /api/orders/{id}/`  
-**Description:** Returns details of a specific order by ID.
+API возвращает коды ошибок HTTP в соответствии со стандартом. Например:
 
-✅ **Response (200 OK)**
-```json
-{
-    "id": 1,
-    "user": {
-        "id": 2,
-        "username": "johndoe"
-    },
-    "items": [
-        {
-            "product": {
-                "id": 1,
-                "name": "Chocolate Cake",
-                "price": "25.99"
-            },
-            "quantity": 2,
-            "total_price": "51.98"
-        }
-    ],
-    "total": "51.98",
-    "status": "Pending"
-}
-```
+* 400 Bad Request: Некорректный запрос.
+* 401 Unauthorized: Требуется аутентификация.
+* 403 Forbidden: Доступ запрещен.
+* 404 Not Found: Ресурс не найден.
 
----
+## 6. Валидация данных
 
-### **3. Create a New Order**  
-**Endpoint:** `POST /api/orders/`  
-**Description:** Creates a new order for the authenticated user.
-
-📥 **Request Body**
-```json
-{
-    "items": [
-        {
-            "product_id": 1,
-            "quantity": 2
-        }
-    ]
-}
-```
-
-✅ **Response (201 Created)**
-```json
-{
-    "id": 2,
-    "user": {
-        "id": 2,
-        "username": "johndoe"
-    },
-    "items": [
-        {
-            "product": {
-                "id": 1,
-                "name": "Chocolate Cake",
-                "price": "25.99"
-            },
-            "quantity": 2,
-            "total_price": "51.98"
-        }
-    ],
-    "total": "51.98",
-    "status": "Pending"
-}
-```
-
----
-
-### **4. Update Order Status**  
-**Endpoint:** `PUT /api/orders/{id}/`  
-**Description:** Updates the status of an order (admin only).
-
-📥 **Request Body**
-```json
-{
-    "status": "Shipped"
-}
-```
-
-✅ **Response (200 OK)**
-```json
-{
-    "id": 1,
-    "status": "Shipped"
-}
-```
-
----
-
-### **5. Cancel an Order**  
-**Endpoint:** `DELETE /api/orders/{id}/`  
-**Description:** Cancels an order (only allowed if it's still pending).
-
-✅ **Response (200 OK)**
-```json
-{
-    "message": "Order canceled successfully"
-}
-```
-
+При создании или обновлении ресурсов API проверяет корректность данных. Например, поля

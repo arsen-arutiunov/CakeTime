@@ -9,21 +9,27 @@ from .serializers import RegisterSerializer, UserSerializer, TokenSerializer
 
 User = get_user_model()
 
+
 class RegisterAPIView(APIView):
     """New user registration"""
 
     @swagger_auto_schema(
         operation_summary="New user registration",
-        operation_description="New user registration",
+        operation_description="Register a new user without automatic login",
         request_body=RegisterSerializer,
-        responses={201: UserSerializer, 400: "Validation Error"}
+        responses={
+            201: {"description": "User registered successfully"},
+            400: "Validation Error"
+        }
     )
     def post(self, request, *args, **kwargs):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
-            return Response(UserSerializer(user).data,
-                            status=status.HTTP_201_CREATED)
+            serializer.save()
+            return Response(
+                {"detail": "Registration successful. Please log in."},
+                status=status.HTTP_201_CREATED
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
